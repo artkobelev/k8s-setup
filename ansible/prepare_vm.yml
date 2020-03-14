@@ -1,0 +1,22 @@
+---
+- name: 'Prepare all VM'
+  hosts: all
+  vars:
+    kubelet_version: 1.17.0-00
+    kubeadm_version: 1.17.0-00
+  roles:
+  - prepare
+  - swapoff
+  tags:
+  - prepare
+
+- name: 'Prepare control VM'
+  hosts: controls
+  tasks:
+  - name: install kubectl
+    become: true
+    apt:
+      name: kubectl
+      state: latest
+  tags:
+  - kubectl

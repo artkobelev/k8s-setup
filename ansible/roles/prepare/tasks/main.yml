@@ -1,0 +1,88 @@
+---
+
+#- name: Allow bridge network control
+#  become: true
+#  shell: sysctl net.bridge.bridge-nf-call-iptables=1
+
+- name: Install Docker
+  become: true
+  apt:
+    name: docker.io
+    state: present
+    update_cache: true
+
+- name: Setup docker daemon
+  become: true
+  copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {
+      "exec-opts": ["native.cgroupdriver=systemd"],
+      "log-driver": "json-file",
+      "log-opts": {
+        "max-size": "100m"
+      },
+      "storage-driver": "overlay2"
+      }
+
+- name: Reload deamon
+  become: true
+  systemd:
+    daemon_reload: true
+
+- name: Start docker service
+  become: true
+  service:
+    name: docker
+    state: restarted
+    enabled: true
+
+- name: Setup iptables
+  become: true
+  shell: iptables -P FORWARD ACCEPT
+
+- name: Install APT Transport HTTPS
+  become: true
+  apt:
+    name: apt-transport-https
+    state: present
+
+- name: Add Kubernetes apt-key
+  become: true
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Aadd Kubernetes' APT repository
+  become: true
+  apt_repository:
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    filename: 'kubernetes'
+
+- name: Install kubelet
+  become: true
+  apt:
+    name: 'kubelet={{ kubelet_version }}'
+    state: present
+    update_cache: true
+
+- name: Install kubeadm
+  become: true
+  apt:
+    name: 'kubeadm={{ kubeadm_version }}'
+    state: present
+
+- name: Setup kubelet
+  become: true
+  lineinfile:
+    path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    regexp: '^Environment="KUBELET_EXTRA_ARGS='
+    line: 'Environment="KUBELET_EXTRA_ARGS=--node-ip={{ ansible_host }} --resolv-conf=/run/systemd/resolve/resolv.conf"'
+
+- name: Start kubelet service
+  become: true
+  service:
+    name: kubelet
+    state: restarted
+    enabled: true

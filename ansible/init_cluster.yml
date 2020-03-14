@@ -1,0 +1,39 @@
+---
+- name: 'Initialize the kubernetes cluster'
+  hosts: master01
+  tags:
+  - init
+  tasks:
+    - name: Initialize the cluster
+      # shell: 'kubeadm init --apiserver-advertise-address={{ apiserver_address }} --apiserver-cert-extra-sans={{ apiserver_address }} --pod-network-cidr=192.168.0.0/16'
+      shell: 'kubeadm init --apiserver-advertise-address={{ ansible_host }} --apiserver-cert-extra-sans={{ ansible_host }} --pod-network-cidr=192.168.0.0/16'
+      become: true
+
+- name: Create kube dir
+  hosts: master01
+  tags:
+  - kube
+  tasks:
+    - name: Create .kube directory
+      file:
+        path: '/home/{{ vm_user }}/.kube'
+        state: directory
+        mode: 0755
+
+    - name: Copy admin.conf to user's kube config
+      become: true
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: '/home/{{ vm_user }}/.kube/config'
+        remote_src: true
+        owner: '{{ vm_user }}'
+
+- name: Install weavenet
+  hosts: master01
+  tags:
+  - cni
+  tasks:
+    - name: Install Pod network
+      shell: kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')" > pod_network_setup.txt
+      args:
+        chdir: '/home/{{ vm_user }}'

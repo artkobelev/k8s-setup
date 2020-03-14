@@ -1,0 +1,64 @@
+NUM_MASTER_NODE = 1
+NUM_WORKER_NODE = 1
+
+IP_NW = "192.168.5."
+MASTER_IP_START = 10
+NODE_IP_START = 20
+
+VBOX_USER = "administrator"
+VBOX_SSH_KEY = "/home/artem/.ssh/kubernetes/id_rsa"
+GUEST_ADDITION_VERSION = "5.2.34"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/bionic64"
+  config.vm.box_check_update = false
+  config.ssh.insert_key = false
+  config.ssh.private_key_path = [VBOX_SSH_KEY, "~/.vagrant.d/insecure_private_key"]
+  config.vm.provision "file", source: "#{VBOX_SSH_KEY}.pub", destination: "~/.ssh/authorized_keys"
+
+  # Provision Master Nodes
+  (1..NUM_MASTER_NODE).each do |i|
+      config.vm.define "k8s-master-#{i}" do |node|
+        node.vm.provider "virtualbox" do |vb|
+            vb.name = "k8s-master-#{i}"
+            vb.customize ["modifyvm", :id, "--groups", "/k8s"]
+            vb.memory = 2048
+            vb.cpus = 2
+        end
+        node.vm.hostname = "master-#{i}"
+        node.vm.network :private_network, ip: IP_NW + "#{MASTER_IP_START + i}"
+
+        node.vm.provision "create_user", :type => "shell", :path => "ubuntu/create_user.sh", privileged: true do |u|
+          u.args = [VBOX_USER]
+        end
+
+        # node.vm.provision "install-guest-additions", :type => "shell", :path => "ubuntu/install-guest-additions.sh" do |u|
+        #   u.args = [GUEST_ADDITION_VERSION]
+        # end
+      end
+  end
+
+  # Provision Worker Nodes
+  (1..NUM_WORKER_NODE).each do |i|
+    config.vm.define "k8s-node-#{i}" do |node|
+        node.vm.provider "virtualbox" do |vb|
+            vb.name = "k8s-node-#{i}"
+            vb.customize ["modifyvm", :id, "--groups", "/k8s"]
+            vb.memory = 2048
+            vb.cpus = 2
+        end
+        node.vm.hostname = "node-#{i}"
+        node.vm.network :private_network, ip: IP_NW + "#{NODE_IP_START + i}"
+		    # node.vm.network "forwarded_port", guest: 22, host: "#{2720 + i}"
+
+        node.vm.provision "create_user", :type => "shell", :path => "ubuntu/create_user.sh", privileged: true do |u|
+          u.args = [VBOX_USER]
+        end
+
+        # node.vm.provision "install-guest-additions", :type => "shell", :path => "ubuntu/install-guest-additions.sh" do |u|
+        #   u.args = [GUEST_ADDITION_VERSION]
+        # end
+
+    end
+  end
+end

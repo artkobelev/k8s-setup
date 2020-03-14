@@ -1,0 +1,4 @@
+.idea
+ubuntu-bionic*.log
+.vagrant
+*.iml

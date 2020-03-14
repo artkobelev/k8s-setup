@@ -1,0 +1,18 @@
+---
+- name: 'Reset cluster'
+  hosts: all
+  become: true
+  tasks:
+    - name: Reset cluster
+      shell: kubeadm reset --force
+  tags:
+    - reset
+
+- hosts: master01
+  tasks:
+    - name: Delete .kube
+      file:
+        state: absent
+        path: '/home/{{ vm_user }}/.kube'
+  tags:
+    - kube
