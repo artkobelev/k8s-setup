@@ -6,7 +6,7 @@ MASTER_IP_START = 10
 NODE_IP_START = 20
 
 VBOX_USER = "administrator"
-VBOX_SSH_KEY = "/home/artem/.ssh/kubernetes/id_rsa"
+VBOX_SSH_KEY = "#{ENV['HOME']}/.ssh/kubernetes/id_rsa"
 GUEST_ADDITION_VERSION = "5.2.34"
 
 Vagrant.configure("2") do |config|
@@ -31,6 +31,7 @@ Vagrant.configure("2") do |config|
         node.vm.provision "create_user", :type => "shell", :path => "ubuntu/create_user.sh", privileged: true do |u|
           u.args = [VBOX_USER]
         end
+        node.vm.provision "setup-dns", type: "shell", :path => "ubuntu/update-dns.sh"
 
         # node.vm.provision "install-guest-additions", :type => "shell", :path => "ubuntu/install-guest-additions.sh" do |u|
         #   u.args = [GUEST_ADDITION_VERSION]
@@ -54,6 +55,7 @@ Vagrant.configure("2") do |config|
         node.vm.provision "create_user", :type => "shell", :path => "ubuntu/create_user.sh", privileged: true do |u|
           u.args = [VBOX_USER]
         end
+        node.vm.provision "setup-dns", type: "shell", :path => "ubuntu/update-dns.sh"
 
         # node.vm.provision "install-guest-additions", :type => "shell", :path => "ubuntu/install-guest-additions.sh" do |u|
         #   u.args = [GUEST_ADDITION_VERSION]
