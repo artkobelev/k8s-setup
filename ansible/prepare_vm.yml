@@ -1,6 +1,6 @@
 ---
 - name: 'Prepare all VM'
-  hosts: all
+  hosts: "{{ target | default('all') }}"
   vars:
     kubelet_version: 1.17.0-00
     kubeadm_version: 1.17.0-00

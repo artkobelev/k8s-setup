@@ -8,11 +8,11 @@
   tags:
     - reset
 
-- hosts: master01
+- hosts: k8s-master-1
   tasks:
     - name: Delete .kube
       file:
         state: absent
-        path: '/home/{{ vm_user }}/.kube'
+        path: '$HOME/.kube'
   tags:
     - kube

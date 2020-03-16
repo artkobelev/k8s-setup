@@ -1,4 +1,5 @@
 .idea
 ubuntu-bionic*.log
-.vagrant
+vagrant/.vagrant
 *.iml
+ansible/inventory

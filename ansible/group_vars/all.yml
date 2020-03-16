@@ -1,3 +1,0 @@
-ansible_user: administrator
-ansible_ssh_private_key_file: ~/.ssh/kubernetes/id_rsa
-vm_user: administrator

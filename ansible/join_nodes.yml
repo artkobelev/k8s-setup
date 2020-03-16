@@ -1,6 +1,6 @@
 ---
 - name: 'Get join token'
-  hosts: master01
+  hosts: k8s-master-1
   become: true
   gather_facts: false
   tasks:
@@ -12,8 +12,8 @@
       set_fact:
         join_command: "{{ join_command_raw.stdout_lines[0] }}"
 
-- hosts: nodes
+- hosts: "{{ target | default('nodes') }}"
   become: true
   tasks:
     - name: Join cluster
-      shell: "{{ hostvars['master01'].join_command }} >> join_command.txt"
+      shell: "{{ hostvars['k8s-master-1'].join_command }} >> join_command.txt"
